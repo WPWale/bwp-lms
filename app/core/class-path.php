@@ -27,6 +27,8 @@ class Path {
 	 */
 
 	private $path;
+	
+	private $pathname;
 	/**
 	 * LMS content types
 	 * 
@@ -59,35 +61,38 @@ class Path {
 	 */
 	public function __construct( $path, $types ) {
 
-		$this->on_path = $this->on_path($path);
+		$this->path = $path;
+		
+		$pathname = "{$this->path}name";
+		
+		global ${$pathname};
+		
+		$this->pathname = ${$pathname};
+		
+		$this->on_path = $this->on_path();
 
 		// we're not a course, nothing to do, bail
 		if ( ! $this->on_path ) {
 			return;
 		}
-
+		
 		// else, we're on a course, proceed
 		// setup registered types
 		$this->types = $types;
 
 		// initialise course
-		$this->setup_path_post();
+		$this->post = $this->setup_path_post();
 
-		// initialise map
-		$this->setup_path_map();
+		$this->map = new \BWP_LMS\App\Data\Path_Map();
 	}
 
-	public function on_path($path) {
-		// by now the global $coursname should've been set by WP_Query
-		$typename= "{$type}name";
+	public function on_path() {
 		
-		global ${$typename};
-
-		if ( ! isset( ${$typename} ) ) {
+		if ( ! isset( $this->pathname ) ) {
 			return false;
 		}
 
-		if ( empty( ${$typename} ) ) {
+		if ( empty( $this->pathname ) ) {
 			return false;
 		}
 
@@ -97,22 +102,14 @@ class Path {
 
 	public function setup_path_post() {
 
-		global $coursename;
 
 		$course = get_posts(
 			array(
-				'post_type' => 'course',
-				'name' => $coursename,
+				'post_type' => $this->path,
+				'name' => $this->pathname,
 			) );
-		$this->post = is_array( $course ) ? $course[ 0 ] : false;
-		$this->course_id = $this->post->ID;
-	}
+		 return is_array( $course ) ? $course[ 0 ] : false;
 
-	public function setup_course_map() {
-
-		$map = new \BWP_LMS\App\Data\Course_Map( $this->course_id );
-		$this->map = $map->get( $this->course_id );
-		$this->map[ $this->unit_id ][ 'current' ] = true;
 	}
 
 }
