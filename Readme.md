@@ -31,22 +31,24 @@ LMS that BaapWP intends to use internally.
 
 ## Plugin Flow
 
+### Course Experience
+
  * `/bwp-lms.php`
- * `/includes/constants.php`
- * `/includes/autoloader.php`
- * `/includes/lms-loader.php`
-     * `/app/schema/[attributes, data, content]/*.php`
- * `/app/class-load.php`
- * `/functions/functions.php`
- * `/app/core/class-router.php`
- * `/app/lms/class-load.php`
-     * `/app/lms/class-path.php`
-     * `/app/lms/class-user.php`
-     * `/app/lms/class-journey.php`
-     * `/app/lms/content-types/**.php`
-         * `/app/data/**.php`
- * `/app/core/class-template.php`
-     * `/app/templates/**.php`
-        OR `TEMPLATE_PATH/**.php`
+ * `/includes/constants.php` (define all constants)
+ * `/includes/autoloader.php` (setup autoloader for classes, etc)
+ * `/includes/lms-loader.php` (load functionality)
+     * `/app/class-load.php` (load main functionality, install & register data & content)
+         * `/app/schema/[attributes, data, content]/*.php` (load lms level attributes)
+     * `/functions/functions.php` (load api function definitions)
+     * `/app/core/class-router.php` (setup url rewriting)
+     * `/app/lms/class-load.php` (load LMS)
+         * `/app/lms/class-path.php` (setup path)
+         * `/app/lms/class-user.php` (setup lms user)
+         * `/app/lms/class-journey.php` (setup journey [progress])
+         * `/app/lms/content-types/**.php` (setup content type)
+             * `/app/data/**.php` (load necessary data)
+     * `/app/core/class-template.php`(modify template heirarchy for lms content types)
+         * `/app/templates/**.php`
+            OR `TEMPLATE_PATH/**.php`(load templates either from theme or plugin itself)
 
 

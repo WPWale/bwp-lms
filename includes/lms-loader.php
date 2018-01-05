@@ -20,7 +20,7 @@ use BWP_LMS\App\Core as Core;
 use BWP_LMS\App\LMS as LMS;
 
 // set up custom routes using Rewrite API
-$route = new Core\Route();
+$route = new Core\Router();
 $route->init();
 
 // load LMS Functionality
