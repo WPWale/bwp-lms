@@ -28,45 +28,29 @@
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-if ( ! defined( 'BWP_LMS\PATH' ) ) {
-	/**
-	 * Path to the plugin directory.
-	 *
-	 * @since 1.0.0
-	 */
-	define( 'BWP_LMS\PATH', trailingslashit( plugin_dir_path( __FILE__ ) ) );
-}
+// assign current filename to variable to use in activation hook
+$file = __FILE__;
 
-if ( ! defined( 'BWP_LMS\URL' ) ) {
-	/**
-	 * URL to the plugin directory.
-	 *
-	 * @since 1.0.0
-	 */
-	define( 'BWP_LMS\URL', trailingslashit( plugin_dir_url( __FILE__ ) ) );
-}
+/**
+ * Path to the plugin directory.
+ *
+ * @since 1.0.0
+ */
+define( 'BWP_LMS\PATH', trailingslashit( plugin_dir_path( $file ) ) );
 
-if ( ! defined( 'BWP_LMS\VERSION' ) ) {
-	/**
-	 * Current Plugin Version.
-	 *
-	 * @since 1.0.0
-	 */
-	define( 'BWP_LMS\VERSION', '1.0.0' );
-}
+/**
+ * Other application constants
+ */
+require_once \BWP_LMS\PATH . 'includes/constants.php';
 
 /**
  * The autoloader
  */
-require_once \BWP_LMS\PATH . 'app/autoloader.php';
+require_once \BWP_LMS\PATH . 'includes/autoloader.php';
 
 /**
- * Include template functions
+ * The application core
  */
-include_once \BWP_LMS\PATH . 'functions/functions.php';
+require_once \BWP_LMS\PATH . 'includes/lms-loader.php';
 
-// Instantiate the core class
-$bwp = new \BWP_LMS\App\Core();
-	
-// initialise plugin
-$bwp->init(__FILE__);
+unset($file);

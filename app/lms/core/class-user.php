@@ -4,47 +4,38 @@
  * 
  */
 
-namespace BWP_LMS\App\Core;
+namespace BWP_LMS\App\LMS\Core;
 
 /**
  * 
  */
-class Persona {
-	
-	public $user_id = 0;
-	
+class User {
+
+	public $ID = 0;
 	public $role = 'public';
-	
 	public $persona = 'public';
-	
-	public $allowed = false;
+	private $registered_roles;
 
-	function __construct() {
-		$registered_roles = array(
-			0 => 'public',
-			10 => 'learner',
-			20 => 'mentor',
-			50 => 'admin',
-		);
+	function __construct($path_id, $user_id = false) {
 
-		$this->registered_roles = apply_filters( 'bwp_lms_registered_roles', $registered_roles );
+		$this->registered_roles = bwp_lms()->roles;
+		
+		if(!$user_id){
+			$user_id  = get_current_user_id();
+		}
+		
+		$this->ID = $user_id;
 
-	}
-	
-	public function init($course_id){
-		
-		$this->user_id = get_current_user_id();
-		
-		$this->role = $this->set_role($course_id);
-		
-		$this->persona = $this->set_persona();	
+		$this->role = $this->set_role($path_id);
+
+		$this->persona = $this->set_persona();
 	}
 
 	/**
 	 * 
 	 * @return type
 	 */
-	public function set_role($course_id = 'false') {
+	public function set_role( $path_id = false ) {
 
 		// default $role is public;
 		if ( ! is_user_logged_in() ) {
@@ -52,21 +43,23 @@ class Persona {
 		}
 
 		/*
-		 * look for course level role
+		 * look for path level role
 		 * 
 		 * if not, get their default/ global role
 		 * 
 		 * then, if they aren't learner, they are allowed to have any persona
 		 */
 
-		$role = $this->get_role_for_course($course_id);
+		$role = $this->get_role_for_path( $path_id );
 
 
 		if ( empty( $role ) ) {
 
 			// global role
 
-			$role = get_user_meta( $this->current_user_id, '_bwp_lms_global_role', true );
+			$role = get_user_meta( $this->ID, '_bwp_lms_global_role', true );
+			
+			// there should be a way to check for course-category level persona as well
 		}
 
 		if ( is_role( $role ) ) {
@@ -76,13 +69,18 @@ class Persona {
 		return 'public';
 	}
 
-	public function get_role_for_course($course_id = 'false') {
-		
+	public function get_role_for_path( $path_id = 'false' ) {
+
+		if ( ! $path_id ) {
+			global $lms;
+			$path_id = $lms->path->ID;
+		}
+
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'bwp-lms-course-roles';
+		$table_name = \BWP_LMS\TABLE_PREFIX . 'path_roles';
 
-		$role = $wpdb->get_var( "SELECT role from $table_name WHERE user_id = '$this->user_id' AND course_id =' $course_id" );
+		$role = $wpdb->get_var( "SELECT role from $table_name WHERE user_id = '$this->ID' AND path_id =' $path_id'" );
 
 		return $role;
 	}
@@ -139,14 +137,14 @@ class Persona {
 	}
 
 	function is_persona_allowed_for_role( $persona ) {
-		
-		if ( $this->get_level($persona) <= $this->get_level($this->role) ) {
+
+		if ( $this->get_level( $persona ) <= $this->get_level( $this->role ) ) {
 			return true;
 		}
 
 		return false;
 	}
-	
+
 	function get_level( $role ) {
 		return ( int ) array_search( $role, $this->registered_roles );
 	}

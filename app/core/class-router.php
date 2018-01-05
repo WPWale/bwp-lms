@@ -3,13 +3,14 @@
 /**
  * Contains routing class
  */
+
 namespace BWP_LMS\App\Core;
 
 /**
  * Routes LMS content
  */
-class Route {
-	
+class Router {
+
 	/**
 	 * LMS content types
 	 * 
@@ -17,8 +18,8 @@ class Route {
 	 */
 	private $types;
 
-	public function __construct( $types ) {
-		$this->types = $types;
+	public function __construct() {
+		$this->types = bwp_lms()->content_types;
 	}
 
 	/**
@@ -51,40 +52,41 @@ class Route {
 
 		// for each path (course)
 		foreach ( $this->types[ 'paths' ] as $path ) {
-			
+
 			// Permalink structure course/%coursename%
 			$path_structure = "{$path}/%{$path}name%";
 
 			// add permalink structure to wp rewrite rules
 			add_permastruct( $path, $path_structure, false );
-			
+
 			// add the regex to match %coursename% & placing it in ?coursename=
 			add_rewrite_tag( "%{$path}name%", '([^/]+)', "{$path}name=" );
-			
+
 			// create rewrite rules for modules
 			$this->rewrite_modules( $path_structure );
-			
+
 			// create rewrite rules for units
 			$this->rewrite_units( $path_structure );
 		}
+		
+		add_rewrite_endpoint( 'learn', EP_PERMALINK | EP_PAGES );
 	}
-
 	/**
 	 * Rewrite module urls
 	 * 
 	 * @param string $path_structure The path permalink structure
 	 */
 	function rewrite_modules( $path_structure ) {
-		
+
 		// for each module
 		foreach ( $this->types[ 'modules' ] as $module ) {
-			
+
 			// permalink structure /course/%coursename%/module/%modulename%/
 			$module_structure = $path_structure . "/{$module}/%{$module}name%";
 
 			// add permalink structure to wp rewrite
 			add_permastruct( $module, $module_structure, false );
-			
+
 			// add regex to match %modulename% & placing it in ?modulename=
 			add_rewrite_tag( "%{$module}name%", '(.+?)', "{$module}name=" );
 		}
@@ -96,7 +98,7 @@ class Route {
 	 * @param type $path_structure
 	 */
 	function rewrite_units( $path_structure ) {
-		
+
 		// for each module
 		foreach ( $this->types[ 'units' ] as $unit ) {
 
@@ -105,7 +107,7 @@ class Route {
 
 			// add permalink structure to wp rewrite
 			add_permastruct( $unit, $unit_structure, false );
-			
+
 			// add regex to match %unitname% & placing it in ?unitname=
 			add_rewrite_tag( "%{$unit}name%", '([^/]+)', "{$unit}name=" );
 		}
@@ -123,7 +125,7 @@ class Route {
 	function lms_vars( $query_vars ) {
 
 		foreach ( $this->types[ 'all' ] as $type ) {
-			
+
 			// just add our variable to the default query_vars keys
 			array_push( $query_vars, "{$type}name" );
 		}
@@ -178,17 +180,7 @@ class Route {
 		return $query_vars;
 	}
 
-	/**
-	 * Filters the url to create a nice looking permalink
-	 * 
-	 * Converts http://site.com/%listid%/%listtitle%/ to
-	 * 
-	 * http://site.com/1234/post-title
-	 * 
-	 * @param string $permalink The original permalink
-	 * @param object $post The current custom post
-	 * @return string
-	 */
+
 	/**
 	 * Filter the permalinks for LMS content types
 	 * 
@@ -205,8 +197,29 @@ class Route {
 			return $permalink;
 		}
 
-		// WP_Query globalises all query vars including the ones that we added
-		global $coursename;
+		// for each path (course)
+		foreach ( $this->types[ 'paths' ] as $path ) {
+
+			$pathname = "{$path}name";
+
+			// WP_Query globalises all query vars including the ones that we added
+			global ${$pathname};
+
+			// if say, the $modulename is not set, we set it to current post's name 
+			if ( ! isset( ${$pathname} ) ) {
+				continue;
+			}
+
+			return $this->pretty_permalink( $post );
+		}
+
+		unset( $path );
+
+		// fall back to ugly permalink
+		return $this->ugly_permalink( $post );
+	}
+
+	function pretty_permalink( $post ) {
 
 		/*
 		 * When on a module or a unit, since modules and therefore units
@@ -219,50 +232,41 @@ class Route {
 		 *  * /course/%coursename%/module/%modulename%
 		 *  * /course/%coursename%/lesson/%lessonname%
 		 */
-		if ( isset( $coursename ) ) {
 
-			// for each of our types
-			foreach ( $this->types[ 'all' ] as $type ) {
-				
-				// foreg, $modulename
-				$typename = "{$type}name";
-				
-				// get it from global
-				global ${$typename};
-				
-				// if say, the $modulename is not set, we set it to current post's name 
-				if ( ! isset( ${$typename} ) ) {
-					${$typename} = $post->post_name;
-				}
-				
-				// the registered rewrite placeholder
-				$rewritecode[] = "%{$typename}%";
-				
-				// what the placeholder will be replaced with
-				$rewritereplace[] = ${$typename};
-				
+		// for each of our types
+		foreach ( $this->types[ 'all' ] as $type ) {
+
+			// foreg, $modulename
+			$typename = "{$type}name";
+
+			// get it from global
+			global ${$typename};
+
+			// if say, the $modulename is not set, we set it to current post's name 
+			if ( ! isset( ${$typename} ) ) {
+				${$typename} = $post->post_name;
 			}
 
-			unset( $type );
+			// the registered rewrite placeholder
+			$rewritecode[] = "%{$typename}%";
 
-			// the actual replacement
-			$permalink = str_replace( $rewritecode, $rewritereplace, $permalink );
-
-			return $permalink;
+			// what the placeholder will be replaced with
+			$rewritereplace[] = ${$typename};
 		}
-		
-		// fall back to ugly permalink
-		return $this->ugly_permalink($post);
 
+		unset( $type );
+
+		// the actual replacement
+		$permalink = str_replace( $rewritecode, $rewritereplace, $permalink );
 	}
-	
+
 	/**
 	 * Generate an ugly permalink
 	 * 
 	 * @param object $post Current post object
 	 * @return string
 	 */
-	function ugly_permalink($post){
+	function ugly_permalink( $post ) {
 		/* if there is no gloabl course, we're outside a course,
 		 *  so our custom rules wouldn't work.
 		 * However, we still want to be able to open the unit/module/etc
@@ -272,9 +276,9 @@ class Route {
 		 * etc
 		 */
 		$ugly_args = add_query_arg( array( 'post_type' => $post->post_type, 'p' => $post->ID ), '' );
-		
+
 		$ugly_link = home_url( $ugly_args );
-		
+
 		return $ugly_link;
 	}
 
