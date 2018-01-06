@@ -7,12 +7,8 @@ trait Unit {
 	
 	public $ID;
 	public $type;
-	public $stati;
 	
-	use Roles\Unit\Position;
-	use Roles\Unit\Visibility;
 	use Roles\Unit\Meta;
-	use Roles\Unit\Progress;
 	
 	
 	public function init($unit = false){
@@ -30,7 +26,6 @@ trait Unit {
 		$this->ID = $unit_id;
 		$this->type = $type;
 
-		$this->stati = bwp_lms()->stati;
 	}
 	
 }

@@ -9,6 +9,8 @@ use BWP_LMS\App\LMS as LMS;
 
 use BWP_LMS\App\Data as Data;
 
+use BWP_LMS\App\Roles as Roles;
+
 
 /**
  * 
@@ -21,20 +23,19 @@ class Journey {
 	
 	public $map_utils;
 	
-	public $previous = false;
-	public $current = false;
-	public $next = false;
+	use Roles\Journey\Position;
+	use Roles\Journey\Visibility;
+	use Roles\Journey\Progress;
 	
 	function __construct($path_id, $user = false) {
 		
 		$this->map_utils = new LMS\Utilities\Map();
 		
-		$this->init($path_id, $user);
-	}
-	
-	function init($path_id, $user){
+		$this->stati = bwp_lms()->stati;
 		
 		$this->populate($path_id, $user);
+		
+		$this->set_position();
 	}
 	
 	private function populate($path_id, $user){
@@ -78,9 +79,9 @@ class Journey {
 	
 	public function refresh(){
 		
+		// save map to & re-retreive from db
+		
 	}
-	
-	
 }
 	
 
