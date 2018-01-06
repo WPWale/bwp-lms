@@ -58,7 +58,7 @@ class Map {
 			$journey_step_children = $journey[ $unit_id ][ 'children' ];
 
 
-			if ( ! isset( $journey_step_children ) || ! empty( $journey_step_children ) ) {
+			if ( ! isset( $journey_step_children ) || empty( $journey_step_children ) ) {
 				$unit[ 'children' ] = $this->merge_recursive( $unit[ 'children' ], $journey );
 				continue;
 			}
@@ -66,7 +66,13 @@ class Map {
 			$unit[ 'children' ] = $this->merge_recursive( $unit[ 'children' ], $journey_step_children );
 		}
 
-		return $path;
+		$filtered_path = array_filter( $path, array( $this, 'remove_invisible' ) );
+
+		return $filtered_path;
+	}
+
+	public function remove_invisible( $unit ) {
+		return ! empty( $unit[ 'visible' ] );
 	}
 
 	public function order_recursive( $route_or_map, &$counter ) {

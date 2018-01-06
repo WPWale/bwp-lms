@@ -82,6 +82,69 @@ class Journey {
 		// save map to & re-retreive from db
 		
 	}
-}
 	
+	public function html($link = false){
+		$map = $this->map;
+		$html = '<ul>';
+		$html .= $this->html_recursive($map, $link);
+		$html .= '<ul>';
+		
+		return $html;
+	}
+	
+	public function html_recursive($map, $link = false){
+		
+		$html = '';
+		foreach($map as $unit){
+			$current = ($this->current['unit_id'] === $unit['unit_id'])? ' current': '';
+			$allowed = ($unit['allowed'])?' allowed':'';
+			$html .= '<li class="'.$unit['type'].$current.$allowed.'" title="'.$unit['unit_title'].'">';
+			if($link!==false){
+				$html .= '<a href="'. get_permalink( $unit['unit_id']).'" alt="'.$unit['unit_title'].'">';
+			}
+			$html .= '<span>'.$unit['name'].'</span>';
+			if($link!==false){
+				$html .= '</a>';
+			}
+			if(!empty($unit['children'])){
+				$html .= '<ul>';
+				$html .= $this->html_recursive($unit['children'], $link);
+				$html .= '<ul>';
+			}else{
+				$html .= '</li>';
+			}
+		}
+		
+	}
+	
+	public function unit_nav(){
+		?>
+		<nav class="navigation post-navigation" role="navigation">
+			<h2 class="screen-reader-text">Path Navigation</h2>
+			<ul class="nav-links">
+					<?php echo $this->adjacent_unit_link(); ?>
 
+					<?php echo $this->adjacent_unit_link(false); ?>
+			</ul>
+		</nav>
+		<?php
+	}
+	
+	public function adjacent_unit_link($previous=true){
+		$rel = $previous ? 'prev' : 'next';
+		$class_sfx = $previous? 'previous': 'next';
+		$class = 'nav-'.$class_sfx;
+		$unit = $previous? $this->previous: $this->next;
+		
+		if(!$unit){
+			return '';
+		}
+		
+		$link = '<li class="'.$class.'">';
+		$link .= '<a href="' . get_permalink( $unit['unit_id'] ) . '" rel="'.$rel.'">';
+		$link .= $unit['unit_title'];
+		$link .= '</a>';
+		$link .= '</li>';
+		return $link;
+	}	
+}
