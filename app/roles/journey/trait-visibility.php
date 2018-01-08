@@ -3,32 +3,20 @@ namespace BWP_LMS\App\Roles\Journey;
 
 trait Visibility{
 	
-	public function show( $unit, $visible = true ) {
-		
-		if(!$unit){
-			$unit = $this->current;
-		}
-
-		$this->route[ $unit['unit_id'] ][ 'visible' ] = $visible;
+	public function show( $visible = true ) {
+		$this->object[ 'visible' ] = $visible;
 	}
 
 	public function hide($unit) {
-		$this->show( $unit, false );
+		$this->show( false );
 	}
 
-	public function allow( $unit, $allowed = true ) {
-
-		if(!$unit){
-			$unit = $this->current;
-		}
-		
-		$this->show( $unit, $allowed );
-		
-		$this->route[ $unit['unit_id'] ][ 'allowed' ] = $allowed;
+	public function allow( $allowed = true ) {
+		$this->object[ 'allowed' ] = $allowed;
 	}
 
 	public function disallow($unit) {
-		$this->allow( $unit, false );
+		$this->allow( false );
 	}
 	
 }

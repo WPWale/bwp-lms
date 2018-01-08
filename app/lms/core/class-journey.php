@@ -15,7 +15,7 @@ use BWP_LMS\App\Roles as Roles;
 /**
  * 
  */
-class Journey {
+class Journey extends \BWP_LMS\App\Core\Task{
 	
 	public $route = false;
 	
@@ -24,18 +24,17 @@ class Journey {
 	public $map_utils;
 	
 	use Roles\Journey\Position;
-	use Roles\Journey\Visibility;
 	use Roles\Journey\Progress;
 	
 	function __construct($path_id, $user = false) {
 		
 		$this->map_utils = new LMS\Utilities\Map();
 		
-		$this->stati = bwp_lms()->stati;
-		
 		$this->populate($path_id, $user);
 		
 		$this->set_position();
+		
+		parent::__construct('journey', $this->route);
 	}
 	
 	private function populate($path_id, $user){
