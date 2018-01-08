@@ -18,7 +18,7 @@ if ( ! defined( 'BWP_LMS\SCHEMA_PATH' ) ) {
 	/**
 	 * Path to schema files
 	 */
-	define( 'BWP_LMS\SCHEMA_PATH', \BWP_LMS\PATH . 'schema/' );
+	define( 'BWP_LMS\SCHEMA_PATH', \BWP_LMS\PATH . 'app/schema/' );
 }
 
 if ( ! defined( 'BWP_LMS\TEMPLATE_PATH' ) ) {
